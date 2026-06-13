@@ -172,13 +172,6 @@
       border-color: var(--text-muted);
     }
 
-    .checkbox-logged {
-      width: 20px;
-      height: 20px;
-      accent-color: var(--text-primary);
-      cursor: pointer;
-    }
-
     /* Minimal Buttons */
     .btn-solid {
       background-color: var(--text-primary);
@@ -262,6 +255,28 @@
     .log-subtitle {
       font-size: 0.78rem;
       color: var(--text-muted);
+    }
+
+    .save-exercise-btn {
+      display: block;
+      width: 100%;
+      margin-top: 12px;
+      padding: 13px;
+      background: transparent;
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+
+    .save-exercise-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--text-muted);
     }
 
     .btn-delete {
@@ -457,46 +472,67 @@
               <div class="input-wrapper">
                 <input type="number" class="input-box rir-input" placeholder="rir" value="${rirVal}">
               </div>
-              <div style="text-align:right;">
-                <input type="checkbox" class="checkbox-logged set-check" ${checked} onchange="toggleSetLogging(this, '${ex.name}', '${setNum}')">
-              </div>
             </div>
           `;
         }
 
-        html += `</div>`;
+        html += `
+          <button class="save-exercise-btn" onclick="saveExerciseSets('${ex.name}')">
+            Save ${ex.name}
+          </button>
+        </div>`;
       });
 
       container.innerHTML = html;
     }
 
-    // Handle check/uncheck sets dynamically
-    window.toggleSetLogging = function(checkbox, exName, setNum) {
+    // Save all filled-in sets for an exercise at once
+    window.saveExerciseSets = function(exName) {
       const today = new Date().toISOString().split('T')[0];
-      const row = checkbox.closest('.set-input-row');
+      const rows = document.querySelectorAll(`.set-input-row[data-exercise-name="${exName}"]`);
 
-      localLogs = localLogs.filter(l => !(l.Date === today && l.Exercise_Name === exName && l.Set_Num === setNum.toString()));
+      // Remove any existing logs for this exercise today before re-saving
+      localLogs = localLogs.filter(l => !(l.Date === today && l.Exercise_Name === exName));
 
-      if (checkbox.checked) {
-        const weight = row.querySelector('.weight-input').value || '0';
-        const reps = row.querySelector('.reps-input').value || '0';
+      let savedCount = 0;
+      rows.forEach(row => {
+        const setNum = row.getAttribute('data-set-num');
+        const weight = row.querySelector('.weight-input').value;
+        const reps = row.querySelector('.reps-input').value;
         const rir = row.querySelector('.rir-input').value || '2';
 
-        localLogs.push({
-          Date: today,
-          Day_ID: selectedDayId,
-          Exercise_Name: exName,
-          Set_Num: setNum.toString(),
-          Weight_Lbs: weight,
-          Reps_Completed: reps,
-          RIR: rir,
-          Nutrition_Score: '3',
-          Notes: 'Logged on mobile'
-        });
-      }
+        // Only save sets that have reps filled in
+        if (reps && reps.trim() !== '') {
+          localLogs.push({
+            Date: today,
+            Day_ID: selectedDayId,
+            Exercise_Name: exName,
+            Set_Num: setNum,
+            Weight_Lbs: weight || '0',
+            Reps_Completed: reps,
+            RIR: rir,
+            Nutrition_Score: '3',
+            Notes: 'Logged on mobile'
+          });
+          savedCount++;
+        }
+      });
 
       localStorage.setItem('phone_fitness_logs', JSON.stringify(localLogs));
       renderLogsList();
+
+      // Flash the button green to confirm
+      const btn = document.querySelector(`.save-exercise-btn[onclick="saveExerciseSets('${exName}')"]`);
+      if (btn) {
+        btn.textContent = `\u2713 Saved ${savedCount} set${savedCount !== 1 ? 's' : ''}`;
+        btn.style.background = 'var(--text-primary)';
+        btn.style.color = 'var(--bg-color)';
+        setTimeout(() => {
+          btn.textContent = `Save ${exName}`;
+          btn.style.background = '';
+          btn.style.color = '';
+        }, 2000);
+      }
     }
 
     function setupFormHandlers() {
