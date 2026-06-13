@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Fitness Tracker Mobile</title>
+  <style>
+    :root {
+      --bg-color: #000000;
+      --text-primary: #ffffff;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+      --accent: #ffffff;
+      --font-sans: 'Inter', -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      scrollbar-width: none;
+    }
+    *::-webkit-scrollbar {
+      display: none;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 540px;
+      padding: 30px 16px;
+    }
+
+    /* Horizontal scroll option rows */
+    .scroll-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      font-size: 0.75rem;
+      overflow-x: auto;
+      white-space: nowrap;
+      scrollbar-width: none;
+      align-items: center;
+      padding: 4px 0;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 16px;
+    }
+
+    .scroll-label {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      margin-right: 6px;
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+
+    .opt-chip {
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+      text-transform: uppercase;
+      flex-shrink: 0;
+      padding: 6px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--border-color);
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .opt-chip:hover {
+      color: var(--text-primary);
+      border-color: var(--text-muted);
+    }
+
+    .opt-chip.active {
+      background-color: var(--text-primary);
+      color: var(--bg-color);
+      border-color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* Entries list layout */
+    .exercise-entry {
+      padding: 24px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .exercise-entry:last-child {
+      border-bottom: none;
+    }
+
+    .exercise-meta {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .meta-badge {
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      margin-right: 6px;
+      text-transform: uppercase;
+    }
+
+    .exercise-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      letter-spacing: -0.01em;
+    }
+
+    /* Minimal Set Input Row styling */
+    .set-input-row {
+      display: grid;
+      grid-template-columns: 50px 1fr 1fr 1fr 40px;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .set-input-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .set-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .input-box {
+      background: transparent;
+      border: none;
+      border-bottom: 1.5px solid var(--border-color);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.95rem;
+      padding: 6px 0;
+      outline: none;
+      border-radius: 0;
+      text-align: center;
+      width: 100%;
+      transition: border-color 0.2s;
+    }
+
+    .input-box:focus {
+      border-color: var(--text-muted);
+    }
+
+    .checkbox-logged {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    /* Minimal Buttons */
+    .btn-solid {
+      background-color: var(--text-primary);
+      color: var(--bg-color);
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      width: 100%;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 16px;
+      transition: opacity 0.2s;
+    }
+
+    .btn-solid:active {
+      opacity: 0.85;
+    }
+
+    .btn-border {
+      background: transparent;
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      width: 100%;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 16px;
+      transition: all 0.2s;
+    }
+
+    .btn-border:active {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .btn-danger {
+      color: #ef4444;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-danger:active {
+      background-color: rgba(239, 68, 68, 0.05);
+    }
+
+    /* Logs list styles */
+    .logs-list {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 24px;
+    }
+
+    .log-item {
+      border-bottom: 1px solid var(--border-color);
+      padding: 16px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .log-item:last-child {
+      border-bottom: none;
+    }
+
+    .log-details {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .log-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .log-subtitle {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .btn-delete {
+      color: #ef4444;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Routine Selection Chips -->
+    <div class="scroll-row">
+      <span class="scroll-label">Routine</span>
+      <div id="day-chips" style="display:flex; gap:8px; overflow-x:auto;">
+        <!-- Dynamically populated chips -->
+      </div>
+    </div>
+    
+    <!-- Exercise Logging Container -->
+    <div id="workout-container">
+      <!-- Dynamically populated workout logger -->
+    </div>
+
+    <!-- Memory & Export Section (At bottom of page) -->
+    <div class="logs-section" style="margin-top: 40px; border-top: 1px solid var(--border-color); padding-top: 24px;">
+      <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;">Local Memory</h3>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0; margin-bottom: 20px;">
+        Sets logged at the gym are stored in local phone memory. Export the CSV when done to sync with your PC.
+      </p>
+      
+      <div class="logs-list" id="logs-list">
+        <!-- Render stored entries -->
+      </div>
+      
+      <button class="btn-solid" id="btn-export">Export Data to CSV</button>
+      <button class="btn-border btn-danger" id="btn-clear">Clear Phone Memory</button>
+    </div>
+  </div>
+
+  <script>
+    const CONFIG = {
+      baseline: {
+        initializationDate: "2026-06-13",
+        heightInches: 64,
+        weightLbs: 141.5,
+        estimatedBodyFatPct: 19.0,
+        environment: "neighborhood_gym",
+        schedule: "4_day_upper_lower_split"
+      },
+      schedule: [
+        {
+          id: "Day_1_Upper_A",
+          name: "Day 1: Upper A",
+          type: "workout",
+          exercises: [
+            { name: "Pull-Up Clusters", sets: 5, reps: "2-3", restMin: 1.5, target: "vertical_pull_submax" },
+            { name: "Dumbbell Bench Press", sets: 3, reps: "8-10", restMin: 2.0, target: "horizontal_push" },
+            { name: "Seated DB Shoulder Press", sets: 3, reps: "10-12", restMin: 1.5, target: "vertical_push" },
+            { name: "Seated Cable Row", sets: 3, reps: "10-12", restMin: 1.5, target: "horizontal_pull_posture" },
+            { name: "Tricep Rope Pushdowns", sets: 3, reps: "12-15", restMin: 1.0, target: "arm_accessory" }
+          ]
+        },
+        {
+          id: "Day_2_Lower_A",
+          name: "Day 2: Lower A",
+          type: "workout",
+          exercises: [
+            { name: "Leg Press", sets: 3, reps: "8-10", restMin: 2.0, target: "quad_dominant" },
+            { name: "Romanian Deadlift (RDL)", sets: 3, reps: "8-10", restMin: 2.0, target: "hamstring_hinge_tilt_correct" },
+            { name: "Seated Leg Curl", sets: 3, reps: "12-15", restMin: 1.5, target: "hamstring_isolation" }
+          ]
+        },
+        {
+          id: "Day_3_Rest",
+          name: "Day 3: Rest & Active Recovery",
+          type: "recovery",
+          activity: "optional_zone_2_cardio",
+          durationMins: "20-30"
+        },
+        {
+          id: "Day_4_Upper_B",
+          name: "Day 4: Upper B",
+          type: "workout",
+          exercises: [
+            { name: "Incline Dumbbell Bench", sets: 3, reps: "8-10", restMin: 2.0, target: "incline_push" },
+            { name: "Lat Pulldown", sets: 3, reps: "10-12", restMin: 1.5, target: "vertical_pull_volume" },
+            { name: "Dumbbell Row", sets: 3, reps: "10-12", restMin: 1.5, target: "horizontal_pull_posture" },
+            { name: "Dumbbell Lateral Raise", sets: 4, reps: "12-15", restMin: 1.0, target: "shoulder_width" },
+            { name: "Dumbbell Bicep Curl", sets: 3, reps: "12-15", restMin: 1.0, target: "arm_accessory" }
+          ]
+        },
+        {
+          id: "Day_5_Lower_B",
+          name: "Day 5: Lower B",
+          type: "workout",
+          exercises: [
+            { name: "Goblet Squat", sets: 3, reps: "8-10", restMin: 2.0, target: "quad_anterior_core" },
+            { name: "Leg Press (High Rep Volume)", sets: 3, reps: "12-15", restMin: 1.5, target: "metabolic_quad_volume" },
+            { name: "Standard Forearm Plank", sets: 3, reps: "max", restMin: 1.0, target: "core_stability_tilt_correct" }
+          ]
+        },
+        {
+          id: "Day_6_7_Rest",
+          name: "Days 6 & 7: Rest",
+          type: "recovery",
+          activity: "full_recovery"
+        }
+      ]
+    };
+
+    // State: Load stored logs from phone memory
+    let localLogs = JSON.parse(localStorage.getItem('phone_fitness_logs') || '[]');
+    let selectedDayId = CONFIG.schedule[0].id;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderRoutineChips();
+      renderWorkouts();
+      setupFormHandlers();
+      renderLogsList();
+    });
+
+    function renderRoutineChips() {
+      const dayChipsContainer = document.getElementById('day-chips');
+      const dayChipsHtml = CONFIG.schedule.map(day => {
+        const shortName = day.name.replace('Day ', 'D');
+        const activeClass = day.id === selectedDayId ? 'active' : '';
+        return `<span class="opt-chip ${activeClass}" onclick="selectWorkoutRoutine('${day.id}')">${shortName}</span>`;
+      }).join('');
+      dayChipsContainer.innerHTML = dayChipsHtml;
+    }
+
+    window.selectWorkoutRoutine = function(dayId) {
+      selectedDayId = dayId;
+      renderRoutineChips();
+      renderWorkouts();
+    }
+
+    // Render Workout split exercises (Clean Vertical List)
+    function renderWorkouts() {
+      const container = document.getElementById('workout-container');
+      const dayConfig = CONFIG.schedule.find(d => d.id === selectedDayId);
+
+      if (!dayConfig || dayConfig.type === 'recovery') {
+        container.innerHTML = `
+          <div class="exercise-entry" style="text-align:center; padding: 40px 0;">
+            <p style="color:var(--text-muted); margin-bottom: 8px; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.05em;">Rest & Recovery</p>
+            <div class="exercise-title" style="margin: 0;">${dayConfig?.activity.replace(/_/g, ' ') || 'Full Recovery'}</div>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      dayConfig.exercises.forEach((ex, exIdx) => {
+        html += `
+          <div class="exercise-entry">
+            <div class="exercise-meta">
+              <span class="meta-badge">${ex.target.replace(/_/g, ' ')}</span>
+              <span>${ex.sets} sets - ${ex.reps} reps | Rest: ${ex.restMin}m</span>
+            </div>
+            <div class="exercise-title">${ex.name}</div>
+        `;
+
+        for (let setNum = 1; setNum <= ex.sets; setNum++) {
+          const match = localLogs.find(l => 
+            l.Date === new Date().toISOString().split('T')[0] && 
+            l.Exercise_Name === ex.name && 
+            l.Set_Num === setNum.toString()
+          );
+
+          const weightVal = match ? match.Weight_Lbs : '';
+          const repsVal = match ? match.Reps_Completed : '';
+          const rirVal = match ? match.RIR : '';
+          const checked = match ? 'checked' : '';
+
+          html += `
+            <div class="set-input-row" data-exercise-name="${ex.name}" data-set-num="${setNum}">
+              <span class="set-label">Set ${setNum}</span>
+              <div class="input-wrapper">
+                <input type="number" class="input-box weight-input" placeholder="lbs" value="${weightVal}">
+              </div>
+              <div class="input-wrapper">
+                <input type="number" class="input-box reps-input" placeholder="reps" value="${repsVal}">
+              </div>
+              <div class="input-wrapper">
+                <input type="number" class="input-box rir-input" placeholder="rir" value="${rirVal}">
+              </div>
+              <div style="text-align:right;">
+                <input type="checkbox" class="checkbox-logged set-check" ${checked} onchange="toggleSetLogging(this, '${ex.name}', '${setNum}')">
+              </div>
+            </div>
+          `;
+        }
+
+        html += `</div>`;
+      });
+
+      container.innerHTML = html;
+    }
+
+    // Handle check/uncheck sets dynamically
+    window.toggleSetLogging = function(checkbox, exName, setNum) {
+      const today = new Date().toISOString().split('T')[0];
+      const row = checkbox.closest('.set-input-row');
+
+      localLogs = localLogs.filter(l => !(l.Date === today && l.Exercise_Name === exName && l.Set_Num === setNum.toString()));
+
+      if (checkbox.checked) {
+        const weight = row.querySelector('.weight-input').value || '0';
+        const reps = row.querySelector('.reps-input').value || '0';
+        const rir = row.querySelector('.rir-input').value || '2';
+
+        localLogs.push({
+          Date: today,
+          Day_ID: selectedDayId,
+          Exercise_Name: exName,
+          Set_Num: setNum.toString(),
+          Weight_Lbs: weight,
+          Reps_Completed: reps,
+          RIR: rir,
+          Nutrition_Score: '3',
+          Notes: 'Logged on mobile'
+        });
+      }
+
+      localStorage.setItem('phone_fitness_logs', JSON.stringify(localLogs));
+      renderLogsList();
+    }
+
+    function setupFormHandlers() {
+      document.getElementById('btn-export').addEventListener('click', () => {
+        if (localLogs.length === 0) {
+          alert('No sets logged to export!');
+          return;
+        }
+
+        let csvContent = 'Date,Day_ID,Exercise_Name,Set_Num,Weight_Lbs,Reps_Completed,RIR,Nutrition_Score,Notes\n';
+        localLogs.forEach(entry => {
+          csvContent += `${entry.Date},${entry.Day_ID},${entry.Exercise_Name},${entry.Set_Num},${entry.Weight_Lbs},${entry.Reps_Completed},${entry.RIR},${entry.Nutrition_Score},"${entry.Notes.replace(/"/g, '""')}"\n`;
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `phone_workout_sync_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+
+      document.getElementById('btn-clear').addEventListener('click', () => {
+        if (confirm('Are you sure you want to clear your mobile log memory? Make sure you exported your CSV first!')) {
+          localLogs = [];
+          localStorage.removeItem('phone_fitness_logs');
+          alert('Memory cleared!');
+          renderLogsList();
+          renderWorkouts();
+        }
+      });
+    }
+
+    function renderLogsList() {
+      const list = document.getElementById('logs-list');
+      if (!list) return;
+
+      if (localLogs.length === 0) {
+        list.innerHTML = `<p style="text-align:center; padding:16px 0; color:var(--text-muted); font-size:0.85rem;">No logs currently stored.</p>`;
+        return;
+      }
+
+      list.innerHTML = localLogs.map((log, idx) => {
+        const details = `Set ${log.Set_Num}: ${log.Weight_Lbs} lbs - ${log.Reps_Completed} reps`;
+        return `
+          <div class="log-item">
+            <div class="log-details">
+              <span class="log-title">${log.Exercise_Name}</span>
+              <span class="log-subtitle">${log.Date} | ${details}</span>
+            </div>
+            <button class="btn-delete" onclick="deleteSingleLog(${idx})">×</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.deleteSingleLog = function(idx) {
+      localLogs.splice(idx, 1);
+      localStorage.setItem('phone_fitness_logs', JSON.stringify(localLogs));
+      renderLogsList();
+      renderWorkouts();
+    }
+  </script>
+</body>
+</html>
