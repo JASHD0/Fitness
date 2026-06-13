@@ -144,7 +144,7 @@
     .set-label {
       font-size: 0.85rem;
       font-weight: 600;
-      color: var(--text-secondary);
+      color: var(--text-muted);
     }
 
     .input-wrapper {
@@ -281,7 +281,7 @@
     <!-- Routine Selection Chips -->
     <div class="scroll-row">
       <span class="scroll-label">Routine</span>
-      <div id="day-chips" style="display:flex; gap:8px; overflow-x:auto;">
+      <div id="day-chips" style="display:flex; gap:8px; flex-shrink:0;">
         <!-- Dynamically populated chips -->
       </div>
     </div>
@@ -438,6 +438,8 @@
             l.Set_Num === setNum.toString()
           );
 
+          const isBW = ex.name === 'Pull-Up Clusters' || ex.name === 'Standard Forearm Plank';
+          const placeholderText = isBW ? 'BW' : 'lbs';
           const weightVal = match ? match.Weight_Lbs : '';
           const repsVal = match ? match.Reps_Completed : '';
           const rirVal = match ? match.RIR : '';
@@ -447,7 +449,7 @@
             <div class="set-input-row" data-exercise-name="${ex.name}" data-set-num="${setNum}">
               <span class="set-label">Set ${setNum}</span>
               <div class="input-wrapper">
-                <input type="number" class="input-box weight-input" placeholder="lbs" value="${weightVal}">
+                <input type="number" class="input-box weight-input" placeholder="${placeholderText}" value="${weightVal}">
               </div>
               <div class="input-wrapper">
                 <input type="number" class="input-box reps-input" placeholder="reps" value="${repsVal}">
@@ -541,7 +543,10 @@
       }
 
       list.innerHTML = localLogs.map((log, idx) => {
-        const details = `Set ${log.Set_Num}: ${log.Weight_Lbs} lbs - ${log.Reps_Completed} reps`;
+        const isBW = log.Exercise_Name === 'Pull-Up Clusters' || log.Exercise_Name === 'Standard Forearm Plank';
+        const wVal = parseFloat(log.Weight_Lbs) || 0;
+        const weightText = isBW ? (wVal === 0 ? 'BW' : `BW + ${log.Weight_Lbs} lbs`) : `${log.Weight_Lbs} lbs`;
+        const details = `Set ${log.Set_Num}: ${weightText} - ${log.Reps_Completed} reps`;
         return `
           <div class="log-item">
             <div class="log-details">
